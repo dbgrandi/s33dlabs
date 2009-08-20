@@ -11,19 +11,21 @@ require 'rubygems'
 require 'serialport'
 
 PACHUBE_SERVER = "www.pachube.com"
-PACHUBE_BASE_URL = "http://#{PACHUBE_SERVER}/api/"
+PACHUBE_BASE_URL = "https://#{PACHUBE_SERVER}/api/"
 API_KEY = "09be3023173fed3dd005872a42611843dbafb1b7c25597adf57f45795a60afe9"
+PACHUBE_FEED_ID = 2396
+PACHUBE_FEED_URI = "#{PACHUBE_BASE_URL}#{PACHUBE_FEED_ID}.xml"
 
-eeml_template = %{
+eeml_template = %q{
 <?xml version="1.0" encoding="UTF-8"?>
 <eeml xmlns="http://www.eeml.org/xsd/005">
-  <environment>
-	<% sensors.keys.each do |key| ->
-    <data id="<%= key.to_i ->">
-      <value><%= sensors['key'] -></value>
-    </data>
-  <% end ->
-  </environment>
+<environment>
+<% values.keys.each do |key| %>
+<data id="<%= key.to_i %>">
+<value><%= values[key.to_i] %></value>
+</data>
+<% end %>
+</environment>
 </eeml>
 }.gsub(/^  /, '')
 
@@ -39,10 +41,11 @@ serialDevice = `ls /dev/cu.usbserial*`
 puts "Opening #{serialDevice.strip}"
 sp = SerialPort.new "#{serialDevice.strip}", 9600
 
-last_post_to_pachube = Time.now - 60
-
 puts "Opened #{sp}"
 
+#throw out the first line to get rid of trash partial lines
+puts "garbage line = #{sp.readline}"
+ 
 while values.keys.size < 4
   a = (sp.readline).split ":"
   values[ sensor_ids[a[0]] ] = a[1].to_i
@@ -51,10 +54,15 @@ end
 while true
   a = (sp.readline).split ":"
   values[ sensor_ids[a[0]] ] = a[1].to_i
-
-  if (Time.now - last_post_to_pachube > 60)
-    payload = ERB.new(eeml_template)
-    puts payload.result
-    last_post_to_pachube = Time.now
-  end
+  parser = ERB.new(eeml_template)
+  payload = parser.result.gsub("\n","")
+  
+  client = Net::HTTP.new(PACHUBE_SERVER)
+  response = client.send_request("PUT", PACHUBE_FEED_URI, payload,
+                { 'X-PachubeApiKey' => API_KEY,
+                  'Content-Length'  => payload.length.to_s
+                })
+  puts response.body
+  sleep 60
 end
+

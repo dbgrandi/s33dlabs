@@ -86,13 +86,13 @@ void loop()
 
   light = analogRead(TEMT6000_PIN);
 
-  Serial.print("Temp: ");
-  Serial.print(temp, DEC);
-  Serial.print(" Humidity: ");
-  Serial.print(humid, DEC);
-  Serial.print(" Pressure: ");
-  Serial.print(pressure, DEC);
-  Serial.print(" Light: ");
+  Serial.print("Temp:");
+  Serial.println(temp, DEC);
+  Serial.print("Humidity:");
+  Serial.println(humid, DEC);
+  Serial.print("Pressure:");
+  Serial.println(pressure, DEC);
+  Serial.print("Light:");
   Serial.println(light, DEC);
   
   delay(2500);
