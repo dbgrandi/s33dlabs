@@ -7,14 +7,13 @@
 require 'open-uri'
 require 'net/http'
 require 'erb'
-#require 'rubygems'
+require 'rubygems'
 require 'serialport'
 
 PACHUBE_SERVER = "www.pachube.com"
 PACHUBE_BASE_URL = "https://#{PACHUBE_SERVER}/api/"
 API_KEY = "09be3023173fed3dd005872a42611843dbafb1b7c25597adf57f45795a60afe9"
-#PACHUBE_FEED_ID = 2396
-PACHUBE_FEED_ID = 2528
+PACHUBE_FEED_ID = 2396
 PACHUBE_FEED_URI = "#{PACHUBE_BASE_URL}#{PACHUBE_FEED_ID}.xml"
 
 eeml_template = %q{
@@ -38,11 +37,15 @@ sensor_ids['Pressure'] = 3
 
 values = Hash.new
 
-#serialDevice = `ls /dev/cu.usbserial*`
-#puts "Opening #{serialDevice.strip}"
-#sp = SerialPort.new "#{serialDevice.strip}", 9600
-sp = SerialPort.new "/dev/ttyS3"
+# if we are on OS X, open the usbserial port
+if RUBY_PLATFORM =~ /darwin/i
+  serialDevice = `ls /dev/cu.usbserial*`.strip
+else
+  serialDevice = "/dev/ttyS3"
+end
 
+puts "Opening #{serialDevice}"
+sp = SerialPort.new "#{serialDevice}", 9600
 puts "Opened #{sp}"
 
 #throw out the first line to get rid of trash partial lines
