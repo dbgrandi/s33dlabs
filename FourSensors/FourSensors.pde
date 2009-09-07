@@ -22,8 +22,8 @@ unsigned long temp_pressure;
 unsigned long pressure;
 
 //DEFINES for Temperature/Humidity
-#define SHT15_DATA  7
-#define SHT15_CLOCK 6
+#define SHT15_DATA  4
+#define SHT15_CLOCK 5
 #define SHT15_CMD_TEMP 0b00000011
 #define SHT15_CMD_HUMIDITY 0b00000101
 int val;
@@ -31,7 +31,7 @@ int temp;
 int humid;
 
 // TEMT6000
-#define TEMT6000_PIN 5
+#define TEMT6000_PIN 0
 int light;
 
 void setup()
