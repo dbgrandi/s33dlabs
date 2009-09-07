@@ -13,7 +13,8 @@ require 'serialport'
 PACHUBE_SERVER = "www.pachube.com"
 PACHUBE_BASE_URL = "https://#{PACHUBE_SERVER}/api/"
 API_KEY = "09be3023173fed3dd005872a42611843dbafb1b7c25597adf57f45795a60afe9"
-PACHUBE_FEED_ID = 2396
+#PACHUBE_FEED_ID = 2396
+PACHUBE_FEED_ID = 2528
 PACHUBE_FEED_URI = "#{PACHUBE_BASE_URL}#{PACHUBE_FEED_ID}.xml"
 
 eeml_template = %q{
@@ -51,6 +52,8 @@ while values.keys.size < 4
   values[ sensor_ids[a[0]] ] = a[1].to_i
 end
 
+i = 0
+
 while true
   a = (sp.readline).split ":"
   values[ sensor_ids[a[0]] ] = a[1].to_i
@@ -62,7 +65,7 @@ while true
                 { 'X-PachubeApiKey' => API_KEY,
                   'Content-Length'  => payload.length.to_s
                 })
-  puts response.body
+  puts "#{Time.now} - reading #{i}"
+  i+=1
   sleep 60
 end
-
