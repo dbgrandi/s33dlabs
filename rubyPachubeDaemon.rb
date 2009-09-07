@@ -7,7 +7,7 @@
 require 'open-uri'
 require 'net/http'
 require 'erb'
-require 'rubygems'
+#require 'rubygems'
 require 'serialport'
 
 PACHUBE_SERVER = "www.pachube.com"
@@ -38,9 +38,10 @@ sensor_ids['Pressure'] = 3
 
 values = Hash.new
 
-serialDevice = `ls /dev/cu.usbserial*`
-puts "Opening #{serialDevice.strip}"
-sp = SerialPort.new "#{serialDevice.strip}", 9600
+#serialDevice = `ls /dev/cu.usbserial*`
+#puts "Opening #{serialDevice.strip}"
+#sp = SerialPort.new "#{serialDevice.strip}", 9600
+sp = SerialPort.new "/dev/ttyS3"
 
 puts "Opened #{sp}"
 
@@ -52,20 +53,26 @@ while values.keys.size < 4
   values[ sensor_ids[a[0]] ] = a[1].to_i
 end
 
-i = 0
+last_post = Time.now
+post=0
 
 while true
   a = (sp.readline).split ":"
   values[ sensor_ids[a[0]] ] = a[1].to_i
-  parser = ERB.new(eeml_template)
-  payload = parser.result.gsub("\n","")
+
+  if Time.now > last_post + 60 
+    parser = ERB.new(eeml_template)
+    payload = parser.result.gsub("\n","")
   
-  client = Net::HTTP.new(PACHUBE_SERVER)
-  response = client.send_request("PUT", PACHUBE_FEED_URI, payload,
+    client = Net::HTTP.new(PACHUBE_SERVER)
+    response = client.send_request("PUT", PACHUBE_FEED_URI, payload,
                 { 'X-PachubeApiKey' => API_KEY,
                   'Content-Length'  => payload.length.to_s
                 })
-  puts "#{Time.now} - reading #{i}"
-  i+=1
-  sleep 60
+
+    puts "#{Time.now} posted reading #{post}"
+    post += 1
+    last_post = Time.now
+  end
+
 end
